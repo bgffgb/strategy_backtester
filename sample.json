@@ -1,0 +1,10 @@
+{
+  "ticker": "SPY",
+  "fromDate" : "2021-06-01",
+  "toDate" : "2021-06-24",
+  "strategy" : "buyandhold",
+  "callDTE" : 5,
+  "putDTE" : 5,
+  "callDelta" : 30,
+  "putDelta" : -30
+}
