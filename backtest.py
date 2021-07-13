@@ -31,7 +31,7 @@ def main():
             test_params = json.load(f)
     except Exception as e:
         print("Sorry mate, something is wrong with your input file {}. {}".format(filename, e))
-        print("Sorry mate, something is wrong with your input file {}. {}".format(filename, e))
+        logger.info("Sorry mate, something is wrong with your input file {}. {}".format(filename, e))
         return
 
     # Create a session and configure the session.

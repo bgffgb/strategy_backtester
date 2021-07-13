@@ -27,3 +27,9 @@ class Event:
         :return: the option from the option_chains, or None if cannot be found
         """
         return self.option_chains.get_option_by_symbol(symbol)
+
+    def get_option_expiries(self):
+        """
+        :return: list of option expirations
+        """
+        return self.option_chains.get_expiries()

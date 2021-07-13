@@ -29,7 +29,7 @@ def events_generator(ticker, fromdate="2021-06-01", todate=None):
     # Build up the query gradually
     query_str = "SELECT * FROM bt_OptionDataTable WHERE Ticker='" + ticker + "'"
 
-    # TODO: Validate if fromdate, fromtime, todate, totime have correct syntax (YYYY-MM-DD and YYYY-MM-DD hh:mm:ss)
+    # TODO: Validate if fromdate, fromtime, todate, totime have correct syntax (YYYY-MM-DD and YYYY-MM-DDThh:mm:ss)
     if fromdate:
         query_str += " AND QuoteDate >= '" + fromdate + "'"
     else:
@@ -72,8 +72,6 @@ def events_generator(ticker, fromdate="2021-06-01", todate=None):
                 # Create new event based on data gathered so far
                 # NOTE: deriving the price of the underlying from the option is a bit iffy;
                 new_event = Event(ticker=ticker, price=o.underlying, quotedate=prevdate, option_chains=current_chains)
-                logger.info("New {} event date {} at price {} with {} options across {} expiries".format(
-                    ticker, prevdate, o.underlying, current_chains.tot_options, len(current_chains.get_expiries())))
                 yield new_event
 
             prevdate = o.quotedate
@@ -84,6 +82,4 @@ def events_generator(ticker, fromdate="2021-06-01", todate=None):
 
     # Last event
     new_event = Event(ticker=ticker, price=o.underlying, quotedate=prevdate, option_chains=current_chains)
-    logger.info("New {} event date {} at price {} with {} options across {} expiries".format(
-        ticker, prevdate, o.underlying, current_chains.tot_options, len(current_chains.get_expiries())))
     yield new_event

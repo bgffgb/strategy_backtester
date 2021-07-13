@@ -22,13 +22,17 @@ class Portfolio:
     - holdings_expiry_date: maps symbols to their expiry date (for options), or None for underlying
     - holdings_quote_date: maps symbols to the latest price quote date on record
     - holdings_last_price_info: maps symbols to the latest known price
+    - net_value_history: list of (date, netvalue) pairs in chronological order (historical portfolio net asset values)
     """
-    def __init__(self):
-        self.cash = 0
+    def __init__(self, starting_cash):
+        self.cash = starting_cash
         self.holdings_qty = {}
         self.holdings_expiry_date = {}
         self.holdings_quote_date = {}
         self.holdings_last_price_info = {}
+
+        # Add a sole datapoint to mark the beginning of the portfolio (and it's net value at the start)
+        self.net_value_history = [("start", self.cash)]
 
     def __str__(self):
         """
@@ -40,6 +44,35 @@ class Portfolio:
             val = qty * self.holdings_last_price_info[symbol]
             msg += "Pos: {} Symbol: {} Value: {}\n".format(qty, symbol, val)
         return msg
+
+    def get_open_positions(self):
+        """
+        :return: a list of (symbol, quantity) pairs, representing current portfolio holdings
+        """
+        return self.holdings_qty.items()
+
+    def get_performance(self):
+        """
+        :return: percentage up or down of the portfolio
+        """
+        initial_net_value = self.net_value_history[0][1]
+        current_net_value = self.get_net_value()
+        percentage_change = (current_net_value - initial_net_value) / initial_net_value
+        return "{:.2f}%".format(percentage_change * 100)
+
+    def get_max_drawdown(self):
+        """
+        :return: calculate max drawdown throughout the history of the portfolio
+        """
+        mdd = 0
+        minnetval = self.net_value_history[0][1]
+        maxnetval = minnetval
+        for (date, netval) in self.net_value_history:
+            minnetval = min(minnetval, netval)
+            maxnetval = max(maxnetval, netval)
+            if maxnetval != 0:
+                mdd = min(mdd, (minnetval - maxnetval) * 1.0 / maxnetval)
+        return "{:.2f}%".format(mdd * 100)
 
     def get_net_value(self):
         """
@@ -65,6 +98,13 @@ class Portfolio:
             # Add new entry about this holding
             self.holdings_qty[symbol] = 0
         self.holdings_qty[symbol] += qty
+
+        if self.holdings_qty[symbol] == 0:
+            # Remove this position
+            self.holdings_qty.pop(symbol, None)
+            self.holdings_expiry_date.pop(symbol, None)
+            self.holdings_quote_date.pop(symbol, None)
+            self.holdings_last_price_info.pop(symbol, None)
 
     def update_data(self, event : Event):
         for symbol in self.holdings_qty.keys():
@@ -107,7 +147,16 @@ class Portfolio:
         self.update_data(event)
 
         # Handle expired options
-        # TODO: actually implement it...
+        symbols = list(self.holdings_qty.keys())
+        for symbol in symbols:
+            if self.holdings_expiry_date[symbol] is not None:
+                option_expiry = self.holdings_expiry_date[symbol]
+                if event.quotedate >= option_expiry:
+                    # Option expired/expires end of day - need to close it
+                    self.adjust_holdings(symbol, -self.holdings_qty[symbol], self.holdings_last_price_info[symbol])
+
+        # Update historical net value
+        self.net_value_history.append((event.quotedate, self.get_net_value()))
 
 
 

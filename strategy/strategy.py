@@ -19,10 +19,12 @@ class Strategy:
         self.unique_id = ""
 
     @abstractmethod
-    def handle_event(self, event: Event):
+    def handle_event(self, open_positions, totalcash, event: Event):
         """
+        :param open_positions: a list of (symbol, quantity) pairs, representing current portfolio holdings
+        :param totalcash: current available cash on hand (can be negative)
         :param event: a new event with option chain data to react to
-        :return: a list of Order classes
+        :return:a list of Order classes
         """
         pass
 

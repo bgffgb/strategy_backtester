@@ -1,10 +1,16 @@
 {
   "ticker": "SPY",
-  "fromDate" : "2021-06-01",
-  "toDate" : "2021-06-24",
-  "strategy" : "buyandhold",
-  "callDTE" : 5,
-  "putDTE" : 5,
-  "callDelta" : 30,
-  "putDelta" : -30
+  "fromDate" : "2021-01-01",
+  "toDate" : "2021-06-01",
+  "startcash" : 1000000,
+  "strategies" : [
+    {
+      "strategy" : "buyandhold"
+    },
+    {
+      "strategy" : "coveredcall",
+      "dte" : 3,
+      "delta" : 0.2
+    }
+  ]
 }
