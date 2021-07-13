@@ -7,3 +7,6 @@ class Order:
         """
         self.qty = qty
         self.symbol = symbol
+
+    def __str__(self):
+        return "({},{})".format(self.symbol, self.qty)
