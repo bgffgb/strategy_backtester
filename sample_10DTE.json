@@ -9,62 +9,62 @@
     },
     {
       "strategy" : "coveredcall",
-      "dte" : 2,
+      "dte" : 10,
       "delta" : 0.5
     },
     {
       "strategy" : "coveredcall",
-      "dte" : 2,
+      "dte" : 10,
       "delta" : 0.4
     },
     {
       "strategy" : "coveredcall",
-      "dte" : 2,
+      "dte" : 10,
       "delta" : 0.3
     },
     {
       "strategy" : "coveredcall",
-      "dte" : 2,
+      "dte" : 10,
       "delta" : 0.2
     },
     {
       "strategy" : "coveredcall",
-      "dte" : 2,
+      "dte" : 10,
       "delta" : 0.1
     },
     {
       "strategy" : "wheel",
-      "calldte" : 2,
+      "calldte" : 10,
       "calldelta" : 0.5,
-      "putdte" : 2,
+      "putdte" : 10,
       "putdelta" : -0.5
     },
     {
       "strategy" : "wheel",
-      "calldte" : 2,
+      "calldte" : 10,
       "calldelta" : 0.4,
-      "putdte" : 2,
+      "putdte" : 10,
       "putdelta" : -0.4
     },
     {
       "strategy" : "wheel",
-      "calldte" : 2,
+      "calldte" : 10,
       "calldelta" : 0.3,
-      "putdte" : 2,
+      "putdte" : 10,
       "putdelta" : -0.3
     },
     {
       "strategy" : "wheel",
-      "calldte" : 2,
+      "calldte" : 10,
       "calldelta" : 0.2,
-      "putdte" : 2,
+      "putdte" : 10,
       "putdelta" : -0.2
     },
     {
       "strategy" : "wheel",
-      "calldte" : 2,
+      "calldte" : 10,
       "calldelta" : 0.1,
-      "putdte" : 2,
+      "putdte" : 10,
       "putdelta" : -0.1
     }
   ]

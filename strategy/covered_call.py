@@ -3,7 +3,7 @@ from math import floor
 from core.event import Event
 from core.order import Order
 from strategy.strategy import Strategy
-from utils.date_tools import nr_days_between_dates
+from utils.tools import symbol_to_params
 
 class CoveredCall(Strategy):
     """
@@ -14,29 +14,6 @@ class CoveredCall(Strategy):
         super().__init__()
         self.preferred_dte = params.get("dte", 5)
         self.preferred_delta = params.get("delta", 0.3)
-
-    def pick_covered_call(self, event):
-        # Find an expiration with preferred DTE
-        best_expiry = None
-        closest_dte = None
-        for expiration in event.get_option_expiries():
-            expiration_dte = nr_days_between_dates(event.quotedate, expiration)
-            if best_expiry is None or abs(expiration_dte - self.preferred_dte) < abs(closest_dte - self.preferred_dte):
-                best_expiry, closest_dte = expiration, expiration_dte
-
-        # Find an option with closest matching delta
-        opchain = event.option_chains.get_option_chain_by_expiry(best_expiry)
-        best_option = None
-        closest_delta = None
-        for option in opchain.options:
-            if option.type == "CALL":
-                if best_option is None or abs(option.delta - self.preferred_delta) < abs(
-                        closest_delta - self.preferred_delta):
-                    best_option, closest_delta = option, option.delta
-
-        # Place order to short
-        order = Order(-self.buy_qty / 100, best_option.symbol)
-        return order
 
     def handle_event(self, open_positions, totalcash, event: Event):
         orders = []
@@ -51,12 +28,30 @@ class CoveredCall(Strategy):
         # Sell covered calls against position
         if len(open_positions) <= 1:
             # No open option positions currently, sell covered calls
-            order = self.pick_covered_call(event)
+            best_option = event.find_call(self.preferred_dte, self.preferred_delta)
+            order = Order(-self.buy_qty / 100, best_option.symbol)
             orders.append(order)
 
-        # TODO: No option rolling right now; strategy lets them expire (and take the loss on expiry)
+        else:
+            for (symbol, qty) in open_positions:
+                ticker, option_expiry, option_type, strike = symbol_to_params(symbol)
+                # Check if we need to roll covered calls further out
+                if option_type == "CALL" and event.quotedate >= option_expiry:
+                    # Only roll out if call is in the money
+                    if strike <= event.price:
+                        # Close current position
+                        close_order = Order(-qty, symbol)
+                        orders.append(close_order)
+
+                        # Open new one further out
+                        best_option = event.find_call(self.preferred_dte, self.preferred_delta)
+                        open_order = Order(qty, best_option.symbol)
+                        orders.append(open_order)
 
         return orders
+
+    def take_assignment(self):
+        return True
 
     def get_unique_id(self):
         return "CoveredCall(Delta:"+str(self.preferred_delta)+";DTE:"+str(self.preferred_dte)+")"

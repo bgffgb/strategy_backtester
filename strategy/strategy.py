@@ -19,6 +19,14 @@ class Strategy:
         self.unique_id = ""
 
     @abstractmethod
+    def take_assignment(self):
+        """
+        Should the strategy take assignment of shares/let shares be called away when options expire
+        :return: True or False
+        """
+        pass
+
+    @abstractmethod
     def handle_event(self, open_positions, totalcash, event: Event):
         """
         :param open_positions: a list of (symbol, quantity) pairs, representing current portfolio holdings

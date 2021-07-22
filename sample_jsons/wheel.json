@@ -1,0 +1,11 @@
+{
+  "ticker": "SPY",
+  "fromDate" : "2021-01-01",
+  "toDate" : "2021-02-01",
+  "startcash" : 1000000,
+  "strategy" : "coveredcall",
+  "calldte" : 3,
+  "calldelta" : 0.2,
+  "putdte" : 3,
+  "putdelta" : -0.2
+}

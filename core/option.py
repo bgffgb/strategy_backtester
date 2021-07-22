@@ -46,4 +46,4 @@ class Option:
         return "{} quote time: {}".format(self.symbol, self.quotedate)
 
     def midprice(self):
-        return (self.bid + self.ask) / 2
+        return 100 * (self.bid + self.ask) / 2

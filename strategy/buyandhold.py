@@ -23,5 +23,8 @@ class BuyAndHold(Strategy):
         # Just wait and hold, nothing to do...
         return []
 
+    def take_assignment(self):
+        return False
+
     def get_unique_id(self):
         return "BuyAndHold"
