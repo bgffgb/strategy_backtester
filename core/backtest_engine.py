@@ -4,6 +4,7 @@ from core.portfolio import  Portfolio
 from utils.data_loader import events_generator
 from strategy.buyandhold import BuyAndHold
 from strategy.covered_call import CoveredCall
+from strategy.wheel import Wheel
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,8 @@ def strategy_from_params(params):
         return BuyAndHold(params)
     if params["strategy"].lower() == "coveredcall":
         return CoveredCall(params)
+    if params["strategy"].lower() == "wheel":
+        return Wheel(params)
 
 
 def spawn_strategies(params):
@@ -86,7 +89,7 @@ class BackTestEngine:
         self.strategy_list = spawn_strategies(test_params)
 
         # Initialize a portfolio for each of these strategies
-        self.portfolio_list = [Portfolio(starting_cash=self.startcash) for _ in self.strategy_list]
+        self.portfolio_list = [Portfolio(starting_cash=self.startcash, strategy=strat) for strat in self.strategy_list]
 
     def run(self):
         # Simulate events
@@ -96,7 +99,7 @@ class BackTestEngine:
             logger.info("Testing strategies: {}".format(",".join([s.get_unique_id() for s in self.strategy_list])))
 
         for event in events_generator(ticker=self.ticker, fromdate=self.start_date, todate=self.end_date):
-            logger.info("New event for {}, date {}".format(event.ticker, event.quotedate))
+            logger.info("New event for {}, date {}, price {}".format(event.ticker, event.quotedate, event.price))
 
             for strategy, portfolio in zip(self.strategy_list, self.portfolio_list):
                 # Take order decisions from strategy

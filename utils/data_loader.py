@@ -58,6 +58,7 @@ def events_generator(ticker, fromdate="2021-06-01", todate=None):
     containing everything/providing fast structured access.   
     """
     prevdate = None
+    prevprice = None
     current_chains = None
     for j in range(len(data)):
         # Turn DB entry into an Option class instance
@@ -71,15 +72,16 @@ def events_generator(ticker, fromdate="2021-06-01", todate=None):
             if prevdate:
                 # Create new event based on data gathered so far
                 # NOTE: deriving the price of the underlying from the option is a bit iffy;
-                new_event = Event(ticker=ticker, price=o.underlying, quotedate=prevdate, option_chains=current_chains)
+                new_event = Event(ticker=ticker, price=prevprice, quotedate=prevdate, option_chains=current_chains)
                 yield new_event
 
             prevdate = o.quotedate
+            prevprice = o.underlying
             current_chains = OptionChainSet(ticker)
         else:
             # Add option to current option chain
             current_chains.add_option(o)
 
     # Last event
-    new_event = Event(ticker=ticker, price=o.underlying, quotedate=prevdate, option_chains=current_chains)
+    new_event = Event(ticker=ticker, price=prevprice, quotedate=prevdate, option_chains=current_chains)
     yield new_event

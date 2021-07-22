@@ -1,7 +1,8 @@
 import logging
 
 from core.event import Event
-
+from strategy.strategy import Strategy
+from utils.tools import symbol_to_params
 
 logger = logging.getLogger(__name__)
 
@@ -19,15 +20,14 @@ class Portfolio:
 
     The structure of the portfolio class:
     - holdings_qty: maps symbols to quantity held
-    - holdings_expiry_date: maps symbols to their expiry date (for options), or None for underlying
     - holdings_quote_date: maps symbols to the latest price quote date on record
     - holdings_last_price_info: maps symbols to the latest known price
     - net_value_history: list of (date, netvalue) pairs in chronological order (historical portfolio net asset values)
     """
-    def __init__(self, starting_cash):
+    def __init__(self, starting_cash, strategy: Strategy):
         self.cash = starting_cash
+        self.strategy = strategy
         self.holdings_qty = {}
-        self.holdings_expiry_date = {}
         self.holdings_quote_date = {}
         self.holdings_last_price_info = {}
 
@@ -102,22 +102,21 @@ class Portfolio:
         if self.holdings_qty[symbol] == 0:
             # Remove this position
             self.holdings_qty.pop(symbol, None)
-            self.holdings_expiry_date.pop(symbol, None)
             self.holdings_quote_date.pop(symbol, None)
             self.holdings_last_price_info.pop(symbol, None)
 
-    def update_data(self, event : Event):
+    def update_data(self, event: Event):
         for symbol in self.holdings_qty.keys():
             if symbol == event.ticker:
                 self.holdings_last_price_info[symbol] = event.price
                 self.holdings_quote_date[symbol] = event.quotedate
-                self.holdings_expiry_date[symbol] = None
             else:
                 option = event.get_option_by_symbol(symbol)
                 if option:
                     self.holdings_last_price_info[symbol] = option.midprice()
                     self.holdings_quote_date[symbol] = option.quotedate
-                    self.holdings_expiry_date[symbol] = option.expiry
+        # Make sure to also update ticker price
+        self.holdings_last_price_info[event.ticker] = event.price
 
     def update_portfolio(self, order_list, event: Event):
         """
@@ -149,11 +148,41 @@ class Portfolio:
         # Handle expired options
         symbols = list(self.holdings_qty.keys())
         for symbol in symbols:
-            if self.holdings_expiry_date[symbol] is not None:
-                option_expiry = self.holdings_expiry_date[symbol]
-                if event.quotedate >= option_expiry:
-                    # Option expired/expires end of day - need to close it
-                    self.adjust_holdings(symbol, -self.holdings_qty[symbol], self.holdings_last_price_info[symbol])
+            ticker, option_expiry, option_type, strike = symbol_to_params(symbol)
+            if option_expiry is not None:
+                if event.quotedate >= option_expiry and event.ticker == ticker:
+                    # Option expired/expires end of day
+                    if self.strategy.take_assignment():
+                        # Strategy takes assignment
+                        if option_type == "CALL":
+                            if strike < event.price:
+                                # Call is in the money
+                                # Add shares
+                                logger.info("Call option {} took assignment (EOD stock price {})".
+                                            format(symbol, event.price))
+                                self.adjust_holdings(event.ticker, 100 * self.holdings_qty[symbol], strike)
+                            else:
+                                # Call expires worthless
+                                logger.info("Call option {} expires worthless (EOD stock price {})".
+                                            format(symbol, event.price))
+                        else:
+                            if strike > event.price:
+                                # Put is in the money
+                                # Add shares
+                                logger.info("Put option {} took assignment (EOD stock price {})".
+                                            format(symbol, event.price))
+                                self.adjust_holdings(event.ticker, -100 * self.holdings_qty[symbol], strike)
+                            else:
+                                # Put expires worthless
+                                logger.info("Put option {} expires worthless (EOD stock price {})".
+                                            format(symbol, event.price))
+                        # Remove options from holdings
+                        self.adjust_holdings(symbol, -self.holdings_qty[symbol], 0)
+                    else:
+                        # Strategy closes positions before expiry
+                        logger.info("Option {} closed out at price of {} (EOD stock price {})".
+                                    format(symbol, self.holdings_last_price_info[symbol], event.price))
+                        self.adjust_holdings(symbol, -self.holdings_qty[symbol], self.holdings_last_price_info[symbol])
 
         # Update historical net value
         self.net_value_history.append((event.quotedate, self.get_net_value()))
