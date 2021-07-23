@@ -4,6 +4,8 @@ from core.portfolio import  Portfolio
 from utils.data_loader import events_generator
 from strategy.buyandhold import BuyAndHold
 from strategy.covered_call import CoveredCall
+from strategy.leveraged_covered_call import LeveragedCoveredCall
+from strategy.rnd_strategy import RndStrategy
 from strategy.wheel import Wheel
 
 logger = logging.getLogger(__name__)
@@ -21,6 +23,10 @@ def strategy_from_params(params):
         return CoveredCall(params)
     if params["strategy"].lower() == "wheel":
         return Wheel(params)
+    if params["strategy"].lower() == "leveragedcoveredcall":
+        return LeveragedCoveredCall(params)
+    if params["strategy"].lower() == "rndstrategy":
+        return RndStrategy(params)
 
 
 def spawn_strategies(params):
@@ -104,14 +110,14 @@ class BackTestEngine:
             for strategy, portfolio in zip(self.strategy_list, self.portfolio_list):
                 # Take order decisions from strategy
                 orders = strategy.handle_event(open_positions=portfolio.get_open_positions(), totalcash=portfolio.cash,
-                                               event=event)
+                                               totalvalue=portfolio.get_net_value(), event=event)
                 if len(orders) > 0:
                     logger.info("{} placed orders: {}".format(strategy.get_unique_id(), [str(o) for o in orders]))
                 # Update portfolio holdings
                 portfolio.update_portfolio(orders, event)
-                logger.info("Strategy {} Portfolio Value {} Performance {}".
+                logger.info("Strategy {} Portfolio Value {} Performance {} MaxDrawdown {}".
                             format(strategy.get_unique_id(), portfolio.get_net_value(),
-                                   portfolio.get_performance()))
+                                   portfolio.get_performance(), portfolio.get_max_drawdown()))
 
         # Print final portfolio stats
         logger.info("Out of events! Final results")

@@ -10,7 +10,13 @@ from core.optionchainset import OptionChainSet
 from core.event import Event
 
 logger = logging.getLogger(__name__)
-recdb = records.Database('mysql://root:a2b2c2@localhost/rtoptionsdb')
+
+# DB instance initialization
+with open("credentials.txt") as f:
+    username, password = f.readlines()
+    username = username.strip()
+    password = password.strip()
+recdb = records.Database('mysql://'+username+':'+password+'@localhost/rtoptionsdb')
 
 
 def events_generator(ticker, fromdate="2021-06-01", todate=None):

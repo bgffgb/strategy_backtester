@@ -1,0 +1,71 @@
+{
+  "ticker": "QQQ",
+  "fromDate" : "2021-01-01",
+  "toDate" : "2021-06-01",
+  "startcash" : 1000000,
+  "strategies" : [
+    {
+      "strategy" : "buyandhold"
+    },
+    {
+      "strategy" : "coveredcall",
+      "dte" : 5,
+      "delta" : 0.5
+    },
+    {
+      "strategy" : "coveredcall",
+      "dte" : 5,
+      "delta" : 0.4
+    },
+    {
+      "strategy" : "coveredcall",
+      "dte" : 5,
+      "delta" : 0.3
+    },
+    {
+      "strategy" : "coveredcall",
+      "dte" : 5,
+      "delta" : 0.2
+    },
+    {
+      "strategy" : "coveredcall",
+      "dte" : 5,
+      "delta" : 0.1
+    },
+    {
+      "strategy" : "wheel",
+      "calldte" : 5,
+      "calldelta" : 0.5,
+      "putdte" : 5,
+      "putdelta" : -0.5
+    },
+    {
+      "strategy" : "wheel",
+      "calldte" : 5,
+      "calldelta" : 0.4,
+      "putdte" : 5,
+      "putdelta" : -0.4
+    },
+    {
+      "strategy" : "wheel",
+      "calldte" : 5,
+      "calldelta" : 0.3,
+      "putdte" : 5,
+      "putdelta" : -0.3
+    },
+    {
+      "strategy" : "wheel",
+      "calldte" : 5,
+      "calldelta" : 0.2,
+      "putdte" : 5,
+      "putdelta" : -0.2
+    },
+    {
+      "strategy" : "wheel",
+      "calldte" : 5,
+      "calldelta" : 0.1,
+      "putdte" : 5,
+      "putdelta" : -0.1
+    }
+  ]
+}

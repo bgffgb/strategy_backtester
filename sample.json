@@ -10,48 +10,28 @@
     {
       "strategy" : "coveredcall",
       "dte" : 2,
-      "delta" : 0.5
-    },
-    {
-      "strategy" : "coveredcall",
-      "dte" : 2,
-      "delta" : 0.4
-    },
-    {
-      "strategy" : "coveredcall",
-      "dte" : 2,
-      "delta" : 0.3
-    },
-    {
-      "strategy" : "coveredcall",
-      "dte" : 2,
       "delta" : 0.2
     },
     {
-      "strategy" : "coveredcall",
-      "dte" : 2,
-      "delta" : 0.1
+      "strategy" : "leveragedcoveredcall",
+      "longdte" : 30,
+      "longdelta" : 0.95,
+      "shortdte" : 2,
+      "shortdelta" : 0.3
     },
     {
-      "strategy" : "wheel",
-      "calldte" : 2,
-      "calldelta" : 0.5,
-      "putdte" : 2,
-      "putdelta" : -0.5
+      "strategy" : "leveragedcoveredcall",
+      "longdte" : 10,
+      "longdelta" : 0.95,
+      "shortdte" : 2,
+      "shortdelta" : 0.3
     },
     {
-      "strategy" : "wheel",
-      "calldte" : 2,
-      "calldelta" : 0.4,
-      "putdte" : 2,
-      "putdelta" : -0.4
-    },
-    {
-      "strategy" : "wheel",
-      "calldte" : 2,
-      "calldelta" : 0.3,
-      "putdte" : 2,
-      "putdelta" : -0.3
+      "strategy" : "leveragedcoveredcall",
+      "longdte" : 30,
+      "longdelta" : 0.90,
+      "shortdte" : 2,
+      "shortdelta" : 0.3
     },
     {
       "strategy" : "wheel",
@@ -61,11 +41,13 @@
       "putdelta" : -0.2
     },
     {
-      "strategy" : "wheel",
-      "calldte" : 2,
-      "calldelta" : 0.1,
-      "putdte" : 2,
-      "putdelta" : -0.1
+      "strategy" : "rndstrategy",
+      "dte" : 3,
+      "possize" : 10,
+      "mincalldelta" : 0.2,
+      "maxcalldelta" : 0.8,
+      "minputdelta" : -0.2,
+      "maxputdelta" : -0.8
     }
   ]
 }
