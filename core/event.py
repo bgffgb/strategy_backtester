@@ -22,6 +22,24 @@ class Event:
         self.price = price
         self.option_chains = option_chains
 
+    def find_expiry(self, preferred_dte=2, allow0dte=False):
+        """
+        Return option chain with DTE closest to preferred_dte
+        :param preferred_dte: preferred number of days to expiry
+        :param allow0dte: allow or not 0 DTE options
+        :return: the option chain closest to the required DTE, or None if none found
+        """
+        # Find an expiration with preferred DTE
+        best_expiry = None
+        closest_dte = None
+        for expiration in self.get_option_expiries():
+            expiration_dte = nr_days_between_dates(self.quotedate, expiration)
+            if expiration_dte == 0 and not allow0dte:
+                continue
+            if best_expiry is None or abs(expiration_dte - preferred_dte) < abs(closest_dte - preferred_dte):
+                best_expiry, closest_dte = expiration, expiration_dte
+        return best_expiry
+
     def find_call(self, preferred_dte=2, preferred_delta=0.5, allow0dte=False):
         """
         Find a call with DTE and Delta as close as possible to specs
@@ -30,6 +48,8 @@ class Event:
         :param allow0dte: allow or not 0 DTE options
         :return: the call option closest to the required values, or None if none found
         """
+        best_expiry = self.find_expiry(preferred_dte=preferred_dte, allow0dte=allow0dte)
+
         # Find an expiration with preferred DTE
         best_expiry = None
         closest_dte = None
@@ -60,14 +80,7 @@ class Event:
         :return: the put option closest to the required values, or None if none found
         """
         # Find an expiration with preferred DTE
-        best_expiry = None
-        closest_dte = None
-        for expiration in self.get_option_expiries():
-            expiration_dte = nr_days_between_dates(self.quotedate, expiration)
-            if expiration_dte == 0 and not allow0dte:
-                continue
-            if best_expiry is None or abs(expiration_dte - preferred_dte) < abs(closest_dte - preferred_dte):
-                best_expiry, closest_dte = expiration, expiration_dte
+        best_expiry = self.find_expiry(preferred_dte=preferred_dte, allow0dte=allow0dte)
 
         # Find an option with closest matching delta
         opchain = self.option_chains.get_option_chain_by_expiry(best_expiry)

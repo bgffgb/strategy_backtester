@@ -27,7 +27,22 @@ and stays idle after that.
 ## CoveredCall
 
 Given a starting amount of cash, this strategy spends it all buying shares of the underlying (no options),
-and then keeps selling covered calls against it. On expiration, the options are bought back by the portfolio.
+and then keeps selling covered calls against it. On expiration, the options are rolled further out if they are ITM 
+(rolling) or are allowed to expire worthless otherwise.
 
+## LeveragedCoveredCall
 
+A Covered Call strategy using deep ITM options as the long leg instead of owning stocks.
+It imitates a poor man's covered call (PMCC): deep ITM call options for the long leg,
+shorter expiry covered calls for the short leg.
 
+## Wheel
+
+Given a starting amount of cash, this strategy first writes cash secured puts (CSP), and if taking assignment of
+the shares, switches to writing covered calls (CC). If the shares are called away, it switches back to writing CSP.
+
+## RndStrategy
+
+Pick an option chain of preferred DTE and run Risk Neutral Distribution (RND) calculation over it.
+Based on the RND, place 5 orders with the highest profit percentage options.
+Options are close out on expiry.

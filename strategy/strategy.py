@@ -27,10 +27,11 @@ class Strategy:
         pass
 
     @abstractmethod
-    def handle_event(self, open_positions, totalcash, event: Event):
+    def handle_event(self, open_positions, totalcash, totalvalue, event: Event):
         """
         :param open_positions: a list of (symbol, quantity) pairs, representing current portfolio holdings
         :param totalcash: current available cash on hand (can be negative)
+        :param totalvalue: total current liquidation value of the portfolio
         :param event: a new event with option chain data to react to
         :return:a list of Order classes
         """

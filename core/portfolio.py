@@ -65,13 +65,11 @@ class Portfolio:
         :return: calculate max drawdown throughout the history of the portfolio
         """
         mdd = 0
-        minnetval = self.net_value_history[0][1]
-        maxnetval = minnetval
+        maxnetval = self.net_value_history[0][1]
         for (date, netval) in self.net_value_history:
-            minnetval = min(minnetval, netval)
             maxnetval = max(maxnetval, netval)
             if maxnetval != 0:
-                mdd = min(mdd, (minnetval - maxnetval) * 1.0 / maxnetval)
+                mdd = min(mdd, (netval - maxnetval) * 1.0 / maxnetval)
         return "{:.2f}%".format(mdd * 100)
 
     def get_net_value(self):

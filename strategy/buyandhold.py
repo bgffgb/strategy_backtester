@@ -13,7 +13,7 @@ class BuyAndHold(Strategy):
     def __init__(self, params):
         super().__init__()
 
-    def handle_event(self, open_positions, totalcash, event: Event):
+    def handle_event(self, open_positions, totalcash, totalvalue, event: Event):
         if len(open_positions) == 0:
             # When starting up, buy as many of the underlying ticker as possible
             buy_qty = floor(totalcash / event.price)

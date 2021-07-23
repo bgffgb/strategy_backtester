@@ -47,3 +47,16 @@ class Option:
 
     def midprice(self):
         return 100 * (self.bid + self.ask) / 2
+
+    def get_profit(self, stock_price):
+        '''
+        Returns profit fot this option, assuming it is held LONG (quantity = -1)
+        '''
+        profit = self.midprice() / 100
+
+        if self.type == 'CALL' and stock_price > self.strike:
+            profit += (self.strike - stock_price)
+        if self.type == 'PUT' and stock_price < self.strike:
+            profit += (stock_price - self.strike)
+
+        return -100 * profit

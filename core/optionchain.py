@@ -14,6 +14,9 @@ class OptionChain:
         self.quotedate = quotedate
         self.tot_options = 0
         self.options = []
+        self.calls = []
+        self.puts = []
+        self.sorted = False
 
         if option_list:
             for o in option_list:
@@ -22,3 +25,24 @@ class OptionChain:
     def add_option(self, o):
         self.tot_options += 1
         self.options.append(o)
+        self.sorted = False
+
+        if o.type == 'CALL':
+            self.calls.append((o.strike, o))
+        if o.type == 'PUT':
+            self.puts.append((o.strike, o))
+
+    def make_sorted(self):
+        self.calls.sort()
+        self.puts.sort()
+        self.sorted = True
+
+    def get_sorted_calls(self):
+        if not self.sorted:
+            self.make_sorted()
+        return self.calls
+
+    def get_sorted_puts(self):
+        if not self.sorted:
+            self.make_sorted()
+        return self.puts

@@ -15,7 +15,7 @@ class CoveredCall(Strategy):
         self.preferred_dte = params.get("dte", 5)
         self.preferred_delta = params.get("delta", 0.3)
 
-    def handle_event(self, open_positions, totalcash, event: Event):
+    def handle_event(self, open_positions, totalcash, totalvalue, event: Event):
         orders = []
         if len(open_positions) == 0:
             # When starting up, buy as many of the underlying ticker as possible

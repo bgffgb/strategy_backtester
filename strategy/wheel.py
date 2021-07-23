@@ -9,7 +9,8 @@ from utils.tools import symbol_to_params
 class Wheel(Strategy):
     """
     Wheel strategy
-    Opens a position for as many shares as it can afford and never seels :)
+    Given a starting amount of cash, this strategy first writes cash secured puts (CSP), and if taking assignment of
+    the shares, switches to writing covered calls (CC). If the shares are called away, it switches back to writing CSP.
     """
     def __init__(self, params):
         super().__init__()
@@ -18,7 +19,7 @@ class Wheel(Strategy):
         self.preferred_put_dte = params.get("putdte", 5)
         self.preferred_put_delta = params.get("putdelta", -0.3)
 
-    def handle_event(self, open_positions, totalcash, event: Event):
+    def handle_event(self, open_positions, totalcash, totalvalue, event: Event):
         orders = []
         if len(open_positions) == 0:
             # When no open positions, sell cash covered puts
