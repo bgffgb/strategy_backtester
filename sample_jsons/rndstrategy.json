@@ -1,0 +1,13 @@
+{
+  "ticker": "SPY",
+  "fromDate" : "2021-01-01",
+  "toDate" : "2021-02-01",
+  "startcash" : 1000000,
+  "strategy" : "rndstrategy",
+  "dte" : 3,
+  "possize" : 10,
+  "mincalldelta" : 0.2,
+  "maxcalldelta" : 0.8,
+  "minputdelta" : -0.2,
+  "maxputdelta" : -0.8
+}
