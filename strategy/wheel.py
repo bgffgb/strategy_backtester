@@ -13,7 +13,7 @@ class Wheel(Strategy):
     the shares, switches to writing covered calls (CC). If the shares are called away, it switches back to writing CSP.
     """
     def __init__(self, params):
-        super().__init__()
+        super().__init__(params)
         self.preferred_call_dte = params.get("calldte", 5)
         self.preferred_call_delta = params.get("calldelta", 0.3)
         self.preferred_put_dte = params.get("putdte", 5)

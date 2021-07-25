@@ -36,6 +36,14 @@ A Covered Call strategy using deep ITM options as the long leg instead of owning
 It imitates a poor man's covered call (PMCC): deep ITM call options for the long leg,
 shorter expiry covered calls for the short leg.
 
+Params:
+<li>longdte: DTE for the long option leg</li>
+<li>longdelta: delta for the long option leg</li>
+<li>shortdte: DTE for the short option leg</li>
+<li>shortdelta: delta for the short option leg</li>
+<li>closeonprofit: roll short leg given fraction of profit reached (0.7 -> close short leg when 70% profit reached)</li>
+<li>creditroll: 1 to force rolling positions for credit, ignoring delta; 0 otherwise</li>
+
 ## Wheel
 
 Given a starting amount of cash, this strategy first writes cash secured puts (CSP), and if taking assignment of

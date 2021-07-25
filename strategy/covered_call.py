@@ -11,7 +11,7 @@ class CoveredCall(Strategy):
     Opens a position for as many shares (multiple of 100x) as it can afford and sells covered calls against it
     """
     def __init__(self, params):
-        super().__init__()
+        super().__init__(params)
         self.preferred_dte = params.get("dte", 5)
         self.preferred_delta = params.get("delta", 0.3)
 

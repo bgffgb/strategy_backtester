@@ -58,7 +58,7 @@ class Portfolio:
         initial_net_value = self.net_value_history[0][1]
         current_net_value = self.get_net_value()
         percentage_change = (current_net_value - initial_net_value) / initial_net_value
-        return "{:.2f}%".format(percentage_change * 100)
+        return percentage_change * 100
 
     def get_max_drawdown(self):
         """
@@ -70,7 +70,7 @@ class Portfolio:
             maxnetval = max(maxnetval, netval)
             if maxnetval != 0:
                 mdd = min(mdd, (netval - maxnetval) * 1.0 / maxnetval)
-        return "{:.2f}%".format(mdd * 100)
+        return mdd * 100
 
     def get_net_value(self):
         """
