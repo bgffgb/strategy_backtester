@@ -11,7 +11,7 @@ class BuyAndHold(Strategy):
     Opens a position for as many shares as it can afford and never seels :)
     """
     def __init__(self, params):
-        super().__init__()
+        super().__init__(params)
 
     def handle_event(self, open_positions, totalcash, totalvalue, event: Event):
         if len(open_positions) == 0:

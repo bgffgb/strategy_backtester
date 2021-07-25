@@ -3,11 +3,10 @@
   "fromDate" : "2021-01-01",
   "toDate" : "2021-02-01",
   "startcash" : 1000000,
-  "strategy" : "leveragedcoveredcall",
+  "strategy" : "deltaneutral",
   "longdte" : 7,
-  "longdelta" : 0.95,
+  "longdelta" : 0.98,
   "shortdte" : 2,
-  "shortdelta" : 0.2,
-  "closeonprofit" : 1,
-  "creditroll" : 1
+  "shortdelta" : 0.3,
+  "closeonprofit" : 0.5
 }

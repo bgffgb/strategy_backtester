@@ -12,7 +12,7 @@ class RndStrategy(Strategy):
     Positions are closed out at expiry
     """
     def __init__(self, params):
-        super().__init__()
+        super().__init__(params)
         self.dte = params.get("dte", 5)
         self.possize = params.get("possize", 10)
         self.min_call_delta = params.get("mincalldelta", 0.3)
@@ -38,7 +38,7 @@ class RndStrategy(Strategy):
                 ret = distribution.get_option_expected_return(op)
                 perc = ret / op.midprice() * 100
                 option_returns.append((abs(perc), perc, op))
-
+        option_returns.sort(reverse=True)
         return option_returns
 
     def handle_event(self, open_positions, totalcash, totalvalue, event: Event):

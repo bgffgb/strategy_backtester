@@ -12,10 +12,11 @@ class Strategy:
                     orders
     """
 
-    def __init__(self):
+    def __init__(self, params):
         """
         :param params: a json of strategy specific parameters, mapping strings to their values
         """
+        self.params = params
         self.unique_id = ""
 
     @abstractmethod

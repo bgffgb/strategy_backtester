@@ -3,6 +3,7 @@ import logging
 import sys
 
 from core.backtest_engine import BackTestEngine
+from utils.analysis import analyze
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,11 @@ def main():
     engine = BackTestEngine(test_params)
 
     # Run the session.
-    engine.run()
+    summary = engine.run()
+
+    # Run statistical analysis
+    analyze(test_params, summary)
+
 
 
 if __name__ == "__main__":

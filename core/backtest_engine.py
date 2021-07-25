@@ -1,9 +1,11 @@
+import copy
 import logging
 
 from core.portfolio import  Portfolio
 from utils.data_loader import events_generator
 from strategy.buyandhold import BuyAndHold
 from strategy.covered_call import CoveredCall
+from strategy.delta_neutral import DeltaNeutral
 from strategy.leveraged_covered_call import LeveragedCoveredCall
 from strategy.rnd_strategy import RndStrategy
 from strategy.wheel import Wheel
@@ -25,8 +27,40 @@ def strategy_from_params(params):
         return Wheel(params)
     if params["strategy"].lower() == "leveragedcoveredcall":
         return LeveragedCoveredCall(params)
+    if params["strategy"].lower() == "deltaneutral":
+        return DeltaNeutral(params)
     if params["strategy"].lower() == "rndstrategy":
         return RndStrategy(params)
+
+
+def get_all_permutations(original_params, params_to_generate, index, pos, permutation_list):
+    N = len(index)
+    if pos == len(index):
+        # Create a deep copy of the original parameters
+        param_cpy = copy.deepcopy(original_params)
+        # Rewrite params according to current permutation
+        for i in range(N):
+            key, value = params_to_generate[i]
+            param_cpy[key] = value[index[i]]
+        permutation_list.append(param_cpy)
+    else:
+        # Generate all possible permutations
+        L = len(params_to_generate[pos][1])
+        for i in range(L):
+            index[pos] = i
+            get_all_permutations(original_params, params_to_generate, index, pos + 1, permutation_list)
+
+
+def generate_permutations(params):
+    params_to_generate = []
+    for key, value in params.items():
+        if type(value) == list:
+            params_to_generate.append((key, value))
+
+    N = len(params_to_generate)
+    permutation_list = []
+    get_all_permutations(params, params_to_generate, [0 for _ in range(N)], 0, permutation_list)
+    return permutation_list
 
 
 def spawn_strategies(params):
@@ -38,11 +72,16 @@ def spawn_strategies(params):
     strategy_list = []
     if "strategy" in params:
         # A single strategy is specified
-        strategy_list.append(strategy_from_params(params))
+        perm_list = generate_permutations(params)
+        for param_version in perm_list:
+            strategy_list.append(strategy_from_params(param_version))
     elif "strategies" in params:
         # Add multiple strategies for testing
         for strat_params in params["strategies"]:
-            strategy_list.append(strategy_from_params(strat_params))
+            # Generate all permutations of array-style parameters
+            perm_list = generate_permutations(strat_params)
+            for param_version in perm_list:
+                strategy_list.append(strategy_from_params(param_version))
     return strategy_list
 
 
@@ -98,6 +137,10 @@ class BackTestEngine:
         self.portfolio_list = [Portfolio(starting_cash=self.startcash, strategy=strat) for strat in self.strategy_list]
 
     def run(self):
+        """
+        Run portfolio simulation over historical data for all the strategies
+        :return: final summary result tuple of (performance, maxdrawdown, netvalue, strategy_id) sorted by performance
+        """
         # Simulate events
         if len(self.strategy_list) == 0:
             logger.info("No strategies specified; nothing to test.")
@@ -115,14 +158,20 @@ class BackTestEngine:
                     logger.info("{} placed orders: {}".format(strategy.get_unique_id(), [str(o) for o in orders]))
                 # Update portfolio holdings
                 portfolio.update_portfolio(orders, event)
-                logger.info("Strategy {} Portfolio Value {} Performance {} MaxDrawdown {}".
+                logger.info("Strategy {} Portfolio Value {} Performance {:.2f}% MaxDrawdown {:.2f}%".
                             format(strategy.get_unique_id(), portfolio.get_net_value(),
                                    portfolio.get_performance(), portfolio.get_max_drawdown()))
 
+        # Sort strategies by results and risk
+        summary = []
+        for strategy, portfolio in zip(self.strategy_list, self.portfolio_list):
+            summary.append((portfolio.get_performance(), portfolio.get_max_drawdown(),
+                            portfolio.get_net_value(), strategy.get_unique_id(), strategy))
+        summary.sort(reverse=True)
+
         # Print final portfolio stats
         logger.info("Out of events! Final results")
-        for strategy, portfolio in zip(self.strategy_list, self.portfolio_list):
-            logger.info("Strategy {} Portfolio Value {} Performance {} MaxDrawdown {}".
-                        format(strategy.get_unique_id(), portfolio.get_net_value(),
-                               portfolio.get_performance(), portfolio.get_max_drawdown()))
-
+        for perf, drawdown, netval, id, _ in summary:
+            logger.info("Strategy {} Portfolio Value {} Performance {:.2f}% MaxDrawdown {:.2f}%".
+                        format(id, netval, perf, drawdown))
+        return summary
