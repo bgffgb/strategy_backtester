@@ -67,6 +67,11 @@ def events_generator(ticker, fromdate="2021-06-01", todate=None):
     prevprice = None
     current_chains = None
     for j in range(len(data)):
+        # Verify if option has all the fields we need
+        if data.OptBid[j] == 0 and data.OptAsk[j] == 0:
+            # Consider it invalid only when Bid/Ask prices all zero - very suspicious
+            continue
+
         # Turn DB entry into an Option class instance
         o = Option(ticker=data.Ticker[j], expiry=data.OptExpDate[j], symbol=data.OptionSymbol[j],
                    strike=data.OptStrike[j], type=data.OptType[j], bid=data.OptBid[j], ask=data.OptAsk[j],

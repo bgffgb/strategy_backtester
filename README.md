@@ -37,12 +37,12 @@ It imitates a poor man's covered call (PMCC): deep ITM call options for the long
 shorter expiry covered calls for the short leg.
 
 Params:
-<li>longdte: DTE for the long option leg</li>
-<li>longdelta: delta for the long option leg</li>
-<li>shortdte: DTE for the short option leg</li>
-<li>shortdelta: delta for the short option leg</li>
-<li>closeonprofit: roll short leg given fraction of profit reached (0.7 -> close short leg when 70% profit reached)</li>
-<li>creditroll: 1 to force rolling positions for credit, ignoring delta; 0 otherwise</li>
+1. longdte: DTE for the long option leg
+1. longdelta: delta for the long option leg
+1. shortdte: DTE for the short option leg
+1. shortdelta: delta for the short option leg
+1. closeonprofit: roll short leg given fraction of profit reached (0.7 -> close short leg when 70% profit reached)
+1. creditroll: 1 to force rolling positions for credit, ignoring delta; 0 otherwise
 
 ## Wheel
 
@@ -54,3 +54,20 @@ the shares, switches to writing covered calls (CC). If the shares are called awa
 Pick an option chain of preferred DTE and run Risk Neutral Distribution (RND) calculation over it.
 Based on the RND, place 5 orders with the highest profit percentage options.
 Options are close out on expiry.
+
+## DeltaNeutral
+
+A semi-delta neutral strategy using a four legged strategy:
+- long (large delta and DTE) Put + Call legs
+- short (shorted delta and DTE)  Put + Call legs
+
+Basically, calendar spreads where the long leg is delta neutral, while the short leg attempts to capture theta decay/ 
+profits from short-term price fluctuations.
+ 
+Params:
+1. longdte: DTE for the long option leg
+1. longdelta: delta for the long option leg
+1. shortdte: DTE for the short option leg
+1. shortdelta: delta for the short option leg
+1. closeonprofit: roll short leg given fraction of profit reached (0.7 -> close short leg when 70% profit reached)
+1. creditroll: 1 to force rolling positions for credit, ignoring delta; 0 otherwise

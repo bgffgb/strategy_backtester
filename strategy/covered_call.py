@@ -28,9 +28,11 @@ class CoveredCall(Strategy):
         # Sell covered calls against position
         if len(open_positions) <= 1:
             # No open option positions currently, sell covered calls
-            best_option = event.find_call(self.preferred_dte, self.preferred_delta)
-            order = Order(-self.buy_qty / 100, best_option.symbol)
-            orders.append(order)
+            best_option = event.find_option_by_delta(type="CALL", preferred_dte=self.preferred_dte,
+                                                     preferred_delta=self.preferred_delta)
+            if best_option:
+                order = Order(-self.buy_qty / 100, best_option.symbol)
+                orders.append(order)
 
         else:
             for (symbol, qty) in open_positions:
@@ -44,9 +46,11 @@ class CoveredCall(Strategy):
                         orders.append(close_order)
 
                         # Open new one further out
-                        best_option = event.find_call(self.preferred_dte, self.preferred_delta)
-                        open_order = Order(qty, best_option.symbol)
-                        orders.append(open_order)
+                        best_option = event.find_option_by_delta(type="CALL", preferred_dte=self.preferred_dte,
+                                                                 preferred_delta=self.preferred_delta)
+                        if best_option:
+                            open_order = Order(qty, best_option.symbol)
+                            orders.append(open_order)
 
         return orders
 

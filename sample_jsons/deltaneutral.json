@@ -4,9 +4,10 @@
   "toDate" : "2021-02-01",
   "startcash" : 1000000,
   "strategy" : "deltaneutral",
-  "longdte" : 7,
-  "longdelta" : 0.98,
+  "longdte" : 300,
+  "longdelta" : 0.95,
   "shortdte" : 2,
   "shortdelta" : 0.3,
-  "closeonprofit" : 0.5
+  "closeonprofit" : 1,
+  "creditroll" : [0,1]
 }

@@ -1,7 +1,7 @@
 {
-  "ticker": "QQQ",
+  "ticker": ["QQQ", "SPY", "GUSH", "AAPL", "KO", "NAIL", "VXX"],
   "fromDate" : "2021-01-01",
-  "toDate" : "2021-06-01",
+  "toDate" : "2022-01-01",
   "startcash" : 1000000,
   "strategies" : [
     {
@@ -16,8 +16,8 @@
       "strategy" : "leveragedcoveredcall",
       "longdte" : 300,
       "longdelta" : 0.95,
-      "shortdte" : 45,
-      "shortdelta" : [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+      "shortdte" : 2,
+      "shortdelta" : 0.2,
       "closeonprofit" : 1,
       "creditroll" : [0, 1]
     },
@@ -25,9 +25,10 @@
       "strategy" : "deltaneutral",
       "longdte" : 300,
       "longdelta" : 0.95,
-      "shortdte" : 45,
-      "shortdelta" : [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-      "closeonprofit" : 1
+      "shortdte" : 2,
+      "shortdelta" : 0.2,
+      "closeonprofit" : 1,
+      "creditroll" : [0, 1]
     },
     {
       "strategy" : "wheel",
@@ -35,21 +36,13 @@
       "calldelta" : [0.3, 0.4],
       "putdte" : 2,
       "putdelta" : -0.4
-    },
-    {
-      "strategy" : "rndstrategy",
-      "dte" : 3,
-      "possize" : 10,
-      "mincalldelta" : 0.2,
-      "maxcalldelta" : 0.8,
-      "minputdelta" : -0.2,
-      "maxputdelta" : -0.8
     }
   ],
   "analyze" : [
     {"strategy" : "buyandhold", "params" : ["strategy"]},
+    {"strategy" : "coveredcall", "params" : ["strategy"]},
     {"strategy" : "leveragedcoveredcall", "params" :  ["longdte", "longdelta", "shortdte", "shortdelta", "closeonprofit", "creditroll"] },
-    {"strategy" : "deltaneutral", "params" :  ["longdte", "longdelta", "shortdte", "shortdelta", "closeonprofit"] },
+    {"strategy" : "deltaneutral", "params" :  ["longdte", "longdelta", "shortdte", "shortdelta", "closeonprofit", "creditroll"] },
     {"strategy" : "wheel", "params" :  ["putdte", "putdelta", "calldte", "calldelta"] }
   ]
 }

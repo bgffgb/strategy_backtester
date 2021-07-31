@@ -19,6 +19,7 @@ class DeltaNeutral(Strategy):
         self.short_dte = params.get("shortdte", 3)
         self.short_delta = params.get("shortdelta", 0.3)
         self.closeonprofit = params.get("closeonprofit", 1)
+        self.creditroll = params.get("creditroll", 0)
         self.short_put_value = 0
         self.short_call_value = 0
 
@@ -27,6 +28,9 @@ class DeltaNeutral(Strategy):
         long_position_present = False
         short_put_present = False
         short_call_present = False
+        call_min_roll_price = None
+        put_min_roll_price = None
+
         for (symbol, qty) in open_positions:
             if qty > 0:
                 # We have a long position present
@@ -57,6 +61,13 @@ class DeltaNeutral(Strategy):
                     if refval != 0 and current_short_pos_value / refval <= 1 - self.closeonprofit:
                         close_short_position = True
 
+                # Check if we need to roll for credit
+                if curr_option and close_short_position and self.creditroll == 1:
+                    if "CALL" in symbol:
+                        call_min_roll_price = curr_option.midprice()
+                    if "PUT" in symbol:
+                        put_min_roll_price = curr_option.midprice()
+
                 if close_short_position:
                     # Close current short position
                     close_order = Order(-qty, symbol)
@@ -69,8 +80,10 @@ class DeltaNeutral(Strategy):
 
         if not long_position_present:
             # Buy as many long contracts as we can afford
-            best_call = event.find_call(preferred_dte=self.long_dte, preferred_delta=self.long_delta)
-            best_put = event.find_put(preferred_dte=self.long_dte, preferred_delta=-self.long_delta)
+            best_call = event.find_option_by_delta(type="CALL", preferred_dte=self.long_dte,
+                                                   preferred_delta=self.long_delta)
+            best_put = event.find_option_by_delta(type="PUT", preferred_dte=self.long_dte,
+                                                  preferred_delta=-self.long_delta)
 
             self.buy_qty = floor(totalvalue / (best_call.midprice() + best_put.midprice()))
 
@@ -81,14 +94,26 @@ class DeltaNeutral(Strategy):
 
         if not short_call_present:
             # Write covered options against long positions
-            best_call = event.find_call(preferred_dte=self.short_dte, preferred_delta=self.short_delta)
+            best_call = event.find_option_by_delta(type="CALL", preferred_dte=self.short_dte,
+                                                   preferred_delta=self.short_delta)
+            if self.creditroll == 1 and call_min_roll_price and best_call.midprice() < call_min_roll_price:
+                # Find an option that satisfies credit requirement
+                best_call = event.find_option_by_min_credit(type="CALL", preferred_dte=self.short_dte,
+                                                            preferred_credit=call_min_roll_price)
+
             self.short_call_value = -self.buy_qty * best_call.midprice()
             order = Order(-self.buy_qty, best_call.symbol)
             orders.append(order)
 
         if not short_put_present:
             # Write covered options against long positions
-            best_put = event.find_put(preferred_dte=self.short_dte, preferred_delta=-self.short_delta)
+            best_put = event.find_option_by_delta(type="PUT", preferred_dte=self.short_dte,
+                                                  preferred_delta=-self.short_delta)
+            if self.creditroll == 1 and put_min_roll_price and best_put.midprice() < put_min_roll_price:
+                # Find an option that satisfies credit requirement
+                best_put = event.find_option_by_min_credit(type="PUT", preferred_dte=self.short_dte,
+                                                           preferred_credit=put_min_roll_price)
+
             self.short_put_value = -self.buy_qty * best_put.midprice()
             order = Order(-self.buy_qty, best_put.symbol)
             orders.append(order)
@@ -99,5 +124,5 @@ class DeltaNeutral(Strategy):
         return False
 
     def get_unique_id(self):
-        return "DeltaNeutral(LongDelta:{};LongDTE:{};ShortDelta:{};ShortDTE:{};CloseProfit:{})". \
-            format(self.long_delta, self.long_dte, self.short_delta, self.short_dte, self.closeonprofit)
+        return "DeltaNeutral(LongDelta:{};LongDTE:{};ShortDelta:{};ShortDTE:{};CloseProfit:{};CreditRoll:{})". \
+            format(self.long_delta, self.long_dte, self.short_delta, self.short_dte, self.closeonprofit, self.creditroll)

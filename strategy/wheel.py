@@ -23,7 +23,8 @@ class Wheel(Strategy):
         orders = []
         if len(open_positions) == 0:
             # When no open positions, sell cash covered puts
-            best_option = event.find_put(self.preferred_put_dte, self.preferred_put_delta)
+            best_option = event.find_option_by_delta(type="PUT", preferred_dte=self.preferred_put_dte,
+                                                     preferred_delta=self.preferred_put_delta)
 
             # Check how many contracts we can afford max, once premium is added
             self.buy_qty = floor(totalcash / (best_option.strike - best_option.midprice() / 100)) // 100
@@ -35,7 +36,8 @@ class Wheel(Strategy):
                 ticker, option_expiry, option_type, strike = symbol_to_params(symbol)
                 if option_expiry is None:
                     # Open stock position, sell covered calls
-                    best_option = event.find_call(self.preferred_call_dte, self.preferred_call_delta)
+                    best_option = event.find_option_by_delta(type="CALL", preferred_dte=self.preferred_call_dte,
+                                                             preferred_delta=self.preferred_call_delta)
                     order = Order(-self.buy_qty, best_option.symbol)
                     orders.append(order)
 

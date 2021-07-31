@@ -1,3 +1,4 @@
+import logging
 from math import floor
 
 from core.event import Event
@@ -5,6 +6,7 @@ from core.order import Order
 from strategy.strategy import Strategy
 from utils.tools import symbol_to_params
 
+logger = logging.getLogger(__name__)
 
 class LeveragedCoveredCall(Strategy):
     """
@@ -69,7 +71,8 @@ class LeveragedCoveredCall(Strategy):
 
         if not long_position_present:
             # Buy as many long contracts as we can afford
-            best_option = event.find_call(preferred_dte=self.long_dte, preferred_delta=self.long_delta)
+            best_option = event.find_option_by_delta(type="CALL", preferred_dte=self.long_dte,
+                                                     preferred_delta=self.long_delta)
             self.buy_qty = floor(totalvalue / best_option.midprice())
 
             order = Order(self.buy_qty, best_option.symbol)
@@ -77,10 +80,13 @@ class LeveragedCoveredCall(Strategy):
 
         if not short_position_present:
             # Write covered calls against long position
-            best_option = event.find_call(preferred_dte=self.short_dte, preferred_delta=self.short_delta)
+            best_option = event.find_option_by_delta(type="CALL", preferred_dte=self.short_dte,
+                                                     preferred_delta=self.short_delta)
             if self.creditroll == 1 and min_roll_price and best_option.midprice() < min_roll_price:
+                logger.debug("Credit roll triggered")
                 # Find an option that satisfies credit requirement
-                best_option = event.find_call_min_credit(preferred_dte=self.short_dte, preferred_credit=min_roll_price)
+                best_option = event.find_option_by_min_credit(type="CALL", preferred_dte=self.short_dte,
+                                                              preferred_credit=min_roll_price)
             self.short_pos_value = -self.buy_qty * best_option.midprice()
             order = Order(-self.buy_qty, best_option.symbol)
             orders.append(order)
