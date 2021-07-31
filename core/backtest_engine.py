@@ -1,7 +1,7 @@
 import copy
 import logging
 
-from core.portfolio import  Portfolio
+from core.portfolio import Portfolio
 from utils.data_loader import events_generator
 from strategy.buyandhold import BuyAndHold
 from strategy.covered_call import CoveredCall
@@ -124,54 +124,75 @@ class BackTestEngine:
         # Ticker
         self.ticker = test_params.get("ticker", None)
         if self.ticker is None:
-            self.ticker = "SPY"
-            logger.info("No 'ticker' specified. Using default value of {}".format(self.ticker))
+            self.ticker = ["SPY"]
+            logger.info("No 'ticker' sp"
+                        "ecified. Using default value of {}".format(self.ticker))
+
+        # Make sure ticker is a list
+        if type(self.ticker) != list:
+            self.ticker = [self.ticker]
 
         # Set a starting cash amount, consistent across all strategies
         self.startcash = test_params.get("startcash", 1000000)
 
-        # Get strategies initialized
-        self.strategy_list = spawn_strategies(test_params)
-
-        # Initialize a portfolio for each of these strategies
-        self.portfolio_list = [Portfolio(starting_cash=self.startcash, strategy=strat) for strat in self.strategy_list]
+        # Save out test-params for strategy re-initialization
+        self.test_params = test_params
 
     def run(self):
         """
         Run portfolio simulation over historical data for all the strategies
-        :return: final summary result tuple of (performance, maxdrawdown, netvalue, strategy_id) sorted by performance
+        :return: final summary result dictionary of {ticker : (performance, maxdrawdown, netvalue, strategy_id)} entries,
+        sorted by performance
         """
-        # Simulate events
-        if len(self.strategy_list) == 0:
-            logger.info("No strategies specified; nothing to test.")
-        else:
-            logger.info("Testing strategies: {}".format(",".join([s.get_unique_id() for s in self.strategy_list])))
 
-        for event in events_generator(ticker=self.ticker, fromdate=self.start_date, todate=self.end_date):
-            logger.info("New event for {}, date {}, price {}".format(event.ticker, event.quotedate, event.price))
+        summary_by_ticker = {}
 
-            for strategy, portfolio in zip(self.strategy_list, self.portfolio_list):
-                # Take order decisions from strategy
-                orders = strategy.handle_event(open_positions=portfolio.get_open_positions(), totalcash=portfolio.cash,
-                                               totalvalue=portfolio.get_net_value(), event=event)
-                if len(orders) > 0:
-                    logger.info("{} placed orders: {}".format(strategy.get_unique_id(), [str(o) for o in orders]))
-                # Update portfolio holdings
-                portfolio.update_portfolio(orders, event)
+        # Run a full backtest for every ticker listed
+        for next_ticker in self.ticker:
+            logger.info("Testing ticker {}".format(next_ticker))
+
+            # Get strategies initialized
+            strategy_list = spawn_strategies(self.test_params)
+
+            # Initialize a portfolio for each of these strategies
+            portfolio_list = [Portfolio(starting_cash=self.startcash, strategy=strat) for strat in strategy_list]
+
+            # Simulate events
+            if len(strategy_list) == 0:
+                logger.info("No strategies specified; nothing to test.")
+            else:
+                logger.info("Testing strategies: {}".format(",".join([s.get_unique_id() for s in strategy_list])))
+
+            for event in events_generator(ticker=next_ticker, fromdate=self.start_date, todate=self.end_date):
+                logger.info("New event for {}, date {}, price {}".format(event.ticker, event.quotedate, event.price))
+
+                for strategy, portfolio in zip(strategy_list, portfolio_list):
+                    # Take order decisions from strategy
+                    orders = strategy.handle_event(open_positions=portfolio.get_open_positions(),
+                                                   totalcash=portfolio.cash,
+                                                   totalvalue=portfolio.get_net_value(), event=event)
+                    if len(orders) > 0:
+                        logger.debug("{} placed orders: {}".format(strategy.get_unique_id(), [str(o) for o in orders]))
+                    # Update portfolio holdings
+                    portfolio.update_portfolio(orders, event)
+                    logger.debug("Strategy {} Portfolio Value {} Performance {:.2f}% MaxDrawdown {:.2f}%".
+                                format(strategy.get_unique_id(), portfolio.get_net_value(),
+                                       portfolio.get_performance(), portfolio.get_max_drawdown()))
+
+            # Sort strategies by results and risk
+            summary = []
+            for strategy, portfolio in zip(strategy_list, portfolio_list):
+                summary.append((portfolio.get_performance(), portfolio.get_max_drawdown(),
+                                portfolio.get_net_value(), strategy.get_unique_id(), strategy))
+            summary.sort(reverse=True)
+
+            # Print final portfolio stats
+            logger.info("Out of events! Final results")
+            for perf, drawdown, netval, id, _ in summary:
                 logger.info("Strategy {} Portfolio Value {} Performance {:.2f}% MaxDrawdown {:.2f}%".
-                            format(strategy.get_unique_id(), portfolio.get_net_value(),
-                                   portfolio.get_performance(), portfolio.get_max_drawdown()))
+                            format(id, netval, perf, drawdown))
 
-        # Sort strategies by results and risk
-        summary = []
-        for strategy, portfolio in zip(self.strategy_list, self.portfolio_list):
-            summary.append((portfolio.get_performance(), portfolio.get_max_drawdown(),
-                            portfolio.get_net_value(), strategy.get_unique_id(), strategy))
-        summary.sort(reverse=True)
+            # Save out summary for this ticker
+            summary_by_ticker[next_ticker] = summary
 
-        # Print final portfolio stats
-        logger.info("Out of events! Final results")
-        for perf, drawdown, netval, id, _ in summary:
-            logger.info("Strategy {} Portfolio Value {} Performance {:.2f}% MaxDrawdown {:.2f}%".
-                        format(id, netval, perf, drawdown))
-        return summary
+        return summary_by_ticker

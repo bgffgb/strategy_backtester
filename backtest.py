@@ -24,7 +24,7 @@ def main():
         filename = sys.argv[1]
 
     # Set up logging for the session.
-    logging.basicConfig(filename='session.log', level=logging.DEBUG)
+    logging.basicConfig(filename='session.log', level=logging.INFO)
 
     test_params = None
     try:
@@ -39,10 +39,10 @@ def main():
     engine = BackTestEngine(test_params)
 
     # Run the session.
-    summary = engine.run()
+    ticker_summary = engine.run()
 
     # Run statistical analysis
-    analyze(test_params, summary)
+    analyze(test_params, ticker_summary)
 
 
 

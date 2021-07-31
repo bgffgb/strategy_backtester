@@ -1,13 +1,13 @@
 {
   "ticker": "SPY",
   "fromDate" : "2021-01-01",
-  "toDate" : "2021-02-01",
+  "toDate" : "2022-01-01",
   "startcash" : 1000000,
   "strategy" : "leveragedcoveredcall",
-  "longdte" : 7,
+  "longdte" : 300,
   "longdelta" : 0.95,
   "shortdte" : 2,
   "shortdelta" : 0.2,
   "closeonprofit" : 1,
-  "creditroll" : 1
+  "creditroll" : [0,1]
 }

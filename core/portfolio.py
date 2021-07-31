@@ -156,29 +156,32 @@ class Portfolio:
                             if strike < event.price:
                                 # Call is in the money
                                 # Add shares
-                                logger.info("Call option {} took assignment (EOD stock price {})".
+                                logger.debug("Call option {} took assignment (EOD stock price {})".
                                             format(symbol, event.price))
                                 self.adjust_holdings(event.ticker, 100 * self.holdings_qty[symbol], strike)
                             else:
                                 # Call expires worthless
-                                logger.info("Call option {} expires worthless (EOD stock price {})".
+                                logger.debug("Call option {} expires worthless (EOD stock price {})".
                                             format(symbol, event.price))
+                                pass
                         else:
                             if strike > event.price:
                                 # Put is in the money
                                 # Add shares
-                                logger.info("Put option {} took assignment (EOD stock price {})".
+                                logger.debug("Put option {} took assignment (EOD stock price {})".
                                             format(symbol, event.price))
                                 self.adjust_holdings(event.ticker, -100 * self.holdings_qty[symbol], strike)
                             else:
                                 # Put expires worthless
-                                logger.info("Put option {} expires worthless (EOD stock price {})".
+                                logger.debug("Put option {} expires worthless (EOD stock price {})".
                                             format(symbol, event.price))
+                                pass
+
                         # Remove options from holdings
                         self.adjust_holdings(symbol, -self.holdings_qty[symbol], 0)
                     else:
                         # Strategy closes positions before expiry
-                        logger.info("Option {} closed out at price of {} (EOD stock price {})".
+                        logger.debug("Option {} closed out at price of {} (EOD stock price {})".
                                     format(symbol, self.holdings_last_price_info[symbol], event.price))
                         self.adjust_holdings(symbol, -self.holdings_qty[symbol], self.holdings_last_price_info[symbol])
 

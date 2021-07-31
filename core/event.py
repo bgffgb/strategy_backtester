@@ -40,9 +40,10 @@ class Event:
                 best_expiry, closest_dte = expiration, expiration_dte
         return best_expiry
 
-    def find_call_min_credit(self, preferred_credit, preferred_dte=2, allow0dte=False):
+    def find_option_by_min_credit(self, type, preferred_credit, preferred_dte=2, allow0dte=False):
         """
         Find a call with DTE and Delta as close as possible to specs
+        :param type: "CALL" or "PUT"
         :param preferred_credit: preferred amount of credit we would like to receive
         :param preferred_dte: preferred number of days to expiry
         :param allow0dte: allow or not 0 DTE options
@@ -56,15 +57,15 @@ class Event:
         best_option = None
         closest_credit = None
         for option in opchain.options:
-            if option.type == "CALL":
+            if option.type == type:
                 if best_option is None or abs(option.midprice() - preferred_credit) < abs(closest_credit - preferred_credit):
                     best_option, closest_credit = option, option.midprice()
-
         return best_option
 
-    def find_call(self, preferred_dte=2, preferred_delta=0.5, allow0dte=False):
+    def find_option_by_delta(self, type, preferred_dte=2, preferred_delta=0.5, allow0dte=False):
         """
         Find a call with DTE and Delta as close as possible to specs
+        :param type: "CALL" or "PUT"
         :param preferred_dte: preferred number of days to expiry
         :param preferred_delta: preferred delta of the call (between 0 and 1)
         :param allow0dte: allow or not 0 DTE options
@@ -78,29 +79,7 @@ class Event:
         best_option = None
         closest_delta = None
         for option in opchain.options:
-            if option.type == "CALL":
-                if best_option is None or abs(option.delta - preferred_delta) < abs(
-                        closest_delta - preferred_delta):
-                    best_option, closest_delta = option, option.delta
-
-        return best_option
-
-    def find_put(self, preferred_dte=2, preferred_delta=0.5, allow0dte=False):
-        """
-        Find a put with DTE and Delta as close as possible to specs
-        :param preferred_dte: preferred number of days to expiry
-        :param preferred_delta: preferred delta of the call (between -1 and 0)
-        :return: the put option closest to the required values, or None if none found
-        """
-        # Find an expiration with preferred DTE
-        best_expiry = self.find_expiry(preferred_dte=preferred_dte, allow0dte=allow0dte)
-
-        # Find an option with closest matching delta
-        opchain = self.option_chains.get_option_chain_by_expiry(best_expiry)
-        best_option = None
-        closest_delta = None
-        for option in opchain.options:
-            if option.type == "PUT":
+            if option.type == type and option.delta != 0:
                 if best_option is None or abs(option.delta - preferred_delta) < abs(
                         closest_delta - preferred_delta):
                     best_option, closest_delta = option, option.delta
